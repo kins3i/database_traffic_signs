@@ -1,4 +1,4 @@
-% clear; 
+clear; 
 clc;
 imds = imageDatastore("images", ...
     'IncludeSubfolders',true, ...
@@ -13,7 +13,7 @@ whos img_imds1
 % 2) augmentacja danych według kodu w kaggle (bez obracania!)
 
 
-numWholeTrain = length(imds_resized.UnderlyingDatastores{1, 1}.Labels);
+% numWholeTrain = length(imds_resized.UnderlyingDatastores{1, 1}.Labels);
 percTrainFiles = 0.7;
 [imdsTrain,imdsValidation] = splitEachLabel(imds,percTrainFiles,'randomize');
 
@@ -21,21 +21,21 @@ percTrainFiles = 0.7;
 % TODO 1:
 targetSize = [32 32];
 
-% imdsTrain = transform(imdsTrain,@(x) imresize(x,targetSize));
-% imdsTrain = transform(imdsTrain,@(x) im2double(x));
-% 
-% imdsValidation = transform(imdsValidation,@(x) imresize(x,targetSize));
-% imdsValidation = transform(imdsValidation,@(x) im2double(x));
+imdsTrain = transform(imdsTrain,@(x) imresize(x,targetSize));
+imdsTrain = transform(imdsTrain,@(x) im2double(x));
+
+imdsValidation = transform(imdsValidation,@(x) imresize(x,targetSize));
+imdsValidation = transform(imdsValidation,@(x) im2double(x));
 
 
-imdsTrain = transform(imdsTrain, @commonPreprocessing);
-imdsValidation = transform(imdsValidation, @commonPreprocessing);
+% imdsTrain = transform(imdsTrain, @commonPreprocessing);
+% imdsValidation = transform(imdsValidation, @commonPreprocessing);
 
 
 img_resized1 = read(imdsTrain);
 whos img_resized1
 
-preview(imdsValidation)
+% preview(imdsValidation)
 
 
 % TODO 2:
