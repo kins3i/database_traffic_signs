@@ -1,54 +1,27 @@
 clear; 
 clc;
-imds = imageDatastore("images", ...
+imds_Train = imageDatastore("images/train", ...
     'IncludeSubfolders',true, ...
     'LabelSource','foldernames', ...
     'ReadFcn', @my_readDatastoreImage);
 
-img_imds1 = read(imds);
+imds_Val = imageDatastore("images/test", ...
+    'IncludeSubfolders',true, ...
+    'LabelSource','foldernames', ...
+    'ReadFcn', @my_readDatastoreImage);
+
+img_imds1 = read(imds_Val);
 whos img_imds1
 
 % TODO:
-% 1) zmienić rozmiar na 32x32
 % 2) augmentacja danych według kodu w kaggle (bez obracania!)
 
-% imds_combined = combine(imds, imds.Labels);
 
 
-imds = shuffle(imds);
+imdsTrain = shuffle(imds_Train);
+imdsValidation = shuffle(imds_Val);
 
-% img = readimage(imds,1);
-% figure()
-% imshow(img)
-
-% numWholeTrain = length(imds_resized.UnderlyingDatastores{1, 1}.Labels);
-percTrainFiles = 0.7;
-[imdsTrain,imdsValidation] = splitEachLabel(imds,percTrainFiles,'randomize');
-
-
-% TODO 1:
 targetSize = [32 32];
-
-% imdsTrain = transform(imdsTrain,@(x) imresize(x,targetSize));
-% imdsTrain = transform(imdsTrain,@(x) im2double(x));
-
-img = read(imdsTrain);
-figure()
-imshow(img)
-
-% imdsValidation = transform(imdsValidation,@(x) imresize(x,targetSize));
-% imdsValidation = transform(imdsValidation,@(x) im2double(x));
-
-% imdsTrain = combine()
-
-
-% imdsTrain = transform(imdsTrain, @commonPreprocessing);
-% imdsValidation = transform(imdsValidation, @commonPreprocessing);
-
-
-img_resized1 = read(imdsTrain);
-whos img_resized1
-
 
 % TODO 2:
 % https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
@@ -59,14 +32,18 @@ whos img_resized1
 %                                            width_shift_range=0.2,
 %                                            height_shift_range=0.2,
 %                                            channel_shift_range=0.2)
+
 augmenter = imageDataAugmenter( ...
-    'RandScale',[0.5 1], ...
-    'RandXShear', [0, 0], ...
-    'RandYShear', [0, 0]  );
+    'RandScale',[0.2 1], ...
+    'RandXShear', [-10 0], ...
+    'RandXTranslation', [0 0.2*targetSize(1)], ...
+    'RandYTranslation', [0 0.2*targetSize(2)] );
 
 
 
+auimds = augmentedImageDatastore(targetSize,imdsTrain,'DataAugmentation',augmenter);
 
+val_augm = augmentedImageDatastore(targetSize,imdsValidation,'DataAugmentation',augmenter);
 
 
 
@@ -85,48 +62,42 @@ layers = [
     classificationLayer("Name","classoutput")];
 
 
+options_augm = trainingOptions("adam", ...
+    MaxEpochs=10, ...
+    VerboseFrequency=130,...
+    ValidationFrequency=130,...
+    Plots="training-progress", ...
+    OutputNetwork="best-validation-loss", ...
+    ValidationData=val_augm, ...
+    Verbose=true);
+
 options = trainingOptions("adam", ...
-    MaxEpochs=50, ...
-    ValidationPatience=5, ...
+    MaxEpochs=10, ...
+    VerboseFrequency=130,...
+    ValidationFrequency=130,...
     Plots="training-progress", ...
     OutputNetwork="best-validation-loss", ...
     ValidationData=imdsValidation, ...
     Verbose=true);
 
+%     ValidationPatience=5, ...
 
 
-net = trainNetwork(imdsTrain,layers,options);
-% 
-% YPred = classify(net,imdsValidation);
-% YValidation = imdsValidation.Labels;
-% accuracy = mean(YPred == YValidation)
+% ypred_im = predict(net, test_images);
+
+net2 = trainNetwork(imdsTrain,layers,options);
+
+YPred2 = classify(net2,imdsValidation);
+YValidation = imdsValidation.Labels;
+accuracy2 = mean(YPred2 == YValidation)
 
 
+net = trainNetwork(auimds,layers,options_augm);
+
+YPred = classify(net,imdsValidation);
+YValidation = imdsValidation.Labels;
+accuracy = mean(YPred == YValidation)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-function dataOut = commonPreprocessing(data)
-
-    dataOut = cell(size(data));
-    for col = 1:size(data,2)
-        for idx = 1:size(data,1)
-            temp = single(data{idx,col});
-            temp = imresize(temp,[32,32]);
-            targetSize
-            temp = rescale(temp);
-            dataOut{idx,col} = temp;
-        end
-    end
-end
-
+save('net_not_augm.mat', 'net2')
+save('net_augment.mat', 'net')
