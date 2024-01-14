@@ -2,16 +2,24 @@ clear;
 clc;
 imds = imageDatastore("images", ...
     'IncludeSubfolders',true, ...
-    'LabelSource','foldernames');
+    'LabelSource','foldernames', ...
+    'ReadFcn', @my_readDatastoreImage);
 
 img_imds1 = read(imds);
-
 whos img_imds1
 
 % TODO:
 % 1) zmienić rozmiar na 32x32
 % 2) augmentacja danych według kodu w kaggle (bez obracania!)
 
+% imds_combined = combine(imds, imds.Labels);
+
+
+imds = shuffle(imds);
+
+% img = readimage(imds,1);
+% figure()
+% imshow(img)
 
 % numWholeTrain = length(imds_resized.UnderlyingDatastores{1, 1}.Labels);
 percTrainFiles = 0.7;
@@ -21,11 +29,17 @@ percTrainFiles = 0.7;
 % TODO 1:
 targetSize = [32 32];
 
-imdsTrain = transform(imdsTrain,@(x) imresize(x,targetSize));
-imdsTrain = transform(imdsTrain,@(x) im2double(x));
+% imdsTrain = transform(imdsTrain,@(x) imresize(x,targetSize));
+% imdsTrain = transform(imdsTrain,@(x) im2double(x));
 
-imdsValidation = transform(imdsValidation,@(x) imresize(x,targetSize));
-imdsValidation = transform(imdsValidation,@(x) im2double(x));
+img = read(imdsTrain);
+figure()
+imshow(img)
+
+% imdsValidation = transform(imdsValidation,@(x) imresize(x,targetSize));
+% imdsValidation = transform(imdsValidation,@(x) im2double(x));
+
+% imdsTrain = combine()
 
 
 % imdsTrain = transform(imdsTrain, @commonPreprocessing);
@@ -34,8 +48,6 @@ imdsValidation = transform(imdsValidation,@(x) im2double(x));
 
 img_resized1 = read(imdsTrain);
 whos img_resized1
-
-% preview(imdsValidation)
 
 
 % TODO 2:
@@ -68,21 +80,22 @@ layers = [
     maxPooling2dLayer([2 2],"Name","maxpool_2","Padding","same")
 %     flattenLayer("Name","flatten")
     reluLayer("Name","relu")
-    fullyConnectedLayer(10,"Name","fc")
+    fullyConnectedLayer(92,"Name","fc")
     softmaxLayer("Name","softmax")
     classificationLayer("Name","classoutput")];
 
 
 options = trainingOptions("adam", ...
     MaxEpochs=50, ...
-    ValidationData=imdsValidation, ...
     ValidationPatience=5, ...
     Plots="training-progress", ...
     OutputNetwork="best-validation-loss", ...
-    Verbose=false);
+    ValidationData=imdsValidation, ...
+    Verbose=true);
 
 
-% net = trainNetwork(imdsTrain,layers,options);
+
+net = trainNetwork(imdsTrain,layers,options);
 % 
 % YPred = classify(net,imdsValidation);
 % YValidation = imdsValidation.Labels;
