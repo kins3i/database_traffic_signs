@@ -1,6 +1,8 @@
-clear; clc;
+close all; clear; clc;
 
-I = imread('real_test\test9.png');
+load("detector.mat")
+
+I = imread('real_test\2.jpg');
 I = imresize(I,inputSize(1:2));
 [bboxes,scores] = detect(detector,I);
  

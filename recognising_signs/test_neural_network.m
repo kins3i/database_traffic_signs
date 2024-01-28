@@ -1,4 +1,4 @@
-clear; clc;
+close all; clear; clc;
 
 load("net_augment.mat")
 load("net_not_augm.mat")
@@ -7,9 +7,10 @@ our_sign = "A-7";
 
 imds_Test = imageDatastore("znaki", ...
     'IncludeSubfolders',true, ...
-    "FileExtensions",".png", ...
     "LabelSource","foldernames", ...
     'ReadFcn', @my_readDatastoreImage);
+
+%     "FileExtensions",".png", ...
 
 imds_Test = shuffle(imds_Test);
 
@@ -48,3 +49,13 @@ cm_notaugm = confusionchart(imds_Test.Labels, classified_out_notaugm);
 
 figure()
 cm_augment = confusionchart(imds_Test.Labels, classified_out_augm);
+
+
+for k = 1:length(labels)
+    if classified_out_notaugm(k) ~= labels(k)
+        disp(k)
+        figure()
+        img = readimage(imds_Test,k);
+        imshow(img)
+    end
+end
