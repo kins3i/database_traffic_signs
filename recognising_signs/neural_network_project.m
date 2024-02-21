@@ -63,7 +63,7 @@ layers = [
 
 
 options_augm = trainingOptions("adam", ...
-    MaxEpochs=10, ...
+    MaxEpochs=40, ...
     VerboseFrequency=130,...
     ValidationFrequency=130,...
     Plots="training-progress", ...
@@ -85,11 +85,11 @@ options = trainingOptions("adam", ...
 
 % ypred_im = predict(net, test_images);
 
-net2 = trainNetwork(imdsTrain,layers,options);
-
-YPred2 = classify(net2,imdsValidation);
-YValidation = imdsValidation.Labels;
-accuracy2 = mean(YPred2 == YValidation)
+% net2 = trainNetwork(imdsTrain,layers,options);
+% 
+% YPred2 = classify(net2,imdsValidation);
+% YValidation = imdsValidation.Labels;
+% accuracy2 = mean(YPred2 == YValidation)
 
 
 net = trainNetwork(auimds,layers,options_augm);
@@ -99,5 +99,5 @@ YValidation = imdsValidation.Labels;
 accuracy = mean(YPred == YValidation)
 
 
-save('net_not_augm.mat', 'net2')
-save('net_augment.mat', 'net')
+% save('net_not_augm.mat', 'net2')
+% save('net_augment.mat', 'net')

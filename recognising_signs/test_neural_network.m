@@ -45,15 +45,15 @@ classified_out_augm = categorical(classified_out_augm);
 classified_out_notaugm = categorical(classified_out_notaugm);
 
 figure()
-cm_notaugm = confusionchart(imds_Test.Labels, classified_out_notaugm);
+cm_notaugm = confusionchart(imds_Test.Labels, classified_out_notaugm, 'Title', 'Photos not augmented');
 
 figure()
-cm_augment = confusionchart(imds_Test.Labels, classified_out_augm);
+cm_augment = confusionchart(imds_Test.Labels, classified_out_augm, 'Title', 'Photos augmented');
 
 
 for k = 1:length(labels)
     if classified_out_notaugm(k) ~= labels(k)
-        disp(k)
+        disp(imds_Test.Files(k))
         figure()
         img = readimage(imds_Test,k);
         imshow(img)
